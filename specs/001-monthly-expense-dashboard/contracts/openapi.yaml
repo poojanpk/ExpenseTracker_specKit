@@ -1,0 +1,199 @@
+openapi: 3.1.0
+info:
+  title: Monthly Expense Dashboard API
+  version: 1.0.0
+  description: API contract for monthly expense entry, month navigation, and dashboard summaries.
+servers:
+  - url: http://localhost:5000
+paths:
+  /api/v1/categories:
+    get:
+      summary: List predefined expense categories
+      operationId: listCategories
+      responses:
+        '200':
+          description: Predefined categories returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExpenseCategory'
+  /api/v1/expenses:
+    post:
+      summary: Create a new expense entry
+      operationId: createExpense
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExpenseRequest'
+      responses:
+        '201':
+          description: Expense created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpenseEntry'
+        '400':
+          description: Validation failed.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/months/{monthKey}/expenses:
+    get:
+      summary: List expenses for a selected month
+      operationId: listExpensesByMonth
+      parameters:
+        - $ref: '#/components/parameters/MonthKey'
+      responses:
+        '200':
+          description: Expenses for the selected month returned successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [monthKey, items]
+                properties:
+                  monthKey:
+                    type: string
+                    pattern: '^[0-9]{4}-(0[1-9]|1[0-2])$'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExpenseEntry'
+        '400':
+          description: Invalid month key supplied.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+  /api/v1/months/{monthKey}/dashboard:
+    get:
+      summary: Get monthly dashboard summary
+      operationId: getMonthlyDashboard
+      parameters:
+        - $ref: '#/components/parameters/MonthKey'
+      responses:
+        '200':
+          description: Monthly dashboard returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthlyDashboard'
+        '400':
+          description: Invalid month key supplied.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+components:
+  parameters:
+    MonthKey:
+      name: monthKey
+      in: path
+      required: true
+      description: Selected month in yyyy-MM format.
+      schema:
+        type: string
+        pattern: '^[0-9]{4}-(0[1-9]|1[0-2])$'
+  schemas:
+    CreateExpenseRequest:
+      type: object
+      required: [expenseDate, amount, categoryCode]
+      properties:
+        expenseDate:
+          type: string
+          format: date
+        amount:
+          type: number
+          minimum: 0.01
+        categoryCode:
+          type: string
+        note:
+          type: string
+          maxLength: 250
+    ExpenseEntry:
+      type: object
+      required: [id, expenseDate, monthKey, amount, categoryCode, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        expenseDate:
+          type: string
+          format: date
+        monthKey:
+          type: string
+          pattern: '^[0-9]{4}-(0[1-9]|1[0-2])$'
+        amount:
+          type: number
+        categoryCode:
+          type: string
+        note:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    ExpenseCategory:
+      type: object
+      required: [code, name, displayOrder, colorToken]
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        displayOrder:
+          type: integer
+        colorToken:
+          type: string
+    MonthlyDashboard:
+      type: object
+      required: [monthKey, totalSpent, expenseCount, categoryBreakdown, hasExpenses]
+      properties:
+        monthKey:
+          type: string
+          pattern: '^[0-9]{4}-(0[1-9]|1[0-2])$'
+        totalSpent:
+          type: number
+        expenseCount:
+          type: integer
+        hasExpenses:
+          type: boolean
+        categoryBreakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategorySummary'
+    CategorySummary:
+      type: object
+      required: [categoryCode, categoryName, totalSpent, expenseCount, colorToken]
+      properties:
+        categoryCode:
+          type: string
+        categoryName:
+          type: string
+        totalSpent:
+          type: number
+        expenseCount:
+          type: integer
+        colorToken:
+          type: string
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string

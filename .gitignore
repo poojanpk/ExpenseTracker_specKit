@@ -1,0 +1,31 @@
+bin/
+obj/
+packages/
+*.user
+*.suo
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
+backend/**/bin/
+backend/**/obj/
+backend/src/ExpenseTracker.Api/expense-tracker.db
+backend/src/ExpenseTracker.Api/expense-tracker.db-*
+.env
+.env.*
+# .NET
+bin/
+obj/
+.vs/
+
+# Node
+node_modules/
+dist/
+.env
